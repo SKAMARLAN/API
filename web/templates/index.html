@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personas</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .right-column {
+      background-color: #ffffff;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .navbar-brand {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Gestión de Personas</a>
+        <div class="d-flex">
+            {% if session.get('username') %}
+                {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-light me-2">Panel Admin</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn btn-light">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-light">Login</a>
+            {% endif %}
+            </div>
+    </div>
+    </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="container mt-5">
+    <div class="row">
+      <!-- FORMULARIO -->
+      <div class="col-md-8">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h4 class="mb-0">Buscar Personas</h4>
+          </div>
+          <div class="card-body">
+            <form action="{{ url_for('buscar') }}" method="get" class="row g-3">
+              <div class="col-md-6">
+                <input type="text" name="nombre" class="form-control" placeholder="Nombre" />
+              </div>
+              <div class="col-md-6">
+                <input type="text" name="apellido1" class="form-control" placeholder="Primer apellido" />
+              </div>
+              <div class="col-md-6">
+                <input type="text" name="apellido2" class="form-control" placeholder="Segundo apellido" />
+              </div>
+              <div class="col-md-6">
+                <input type="date" name="fecha_nacimiento" class="form-control" />
+              </div>
+              <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary mt-3">Buscar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+        {% if resultados is defined %}
+        <div class="mt-4">
+            <h5>Resultados:</h5>
+            {% if resultados %}
+            <ul class="list-group">
+                {% for persona in resultados %}
+                <li class="list-group-item">
+                    {{ persona[1] }} {{ persona[2] }} {{ persona[3] }} - {{ persona[4] }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">No se encontraron resultados.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+      <!-- COLUMNA DERECHA -->
+      <div class="col-md-4">
+        <div class="right-column">
+          <h5>¿Qué puedes hacer?</h5>
+          <ul class="list-unstyled mt-3">
+            <li>🔍 Buscar personas por cualquier campo</li>
+            <li>🧾 Ver resultados filtrados</li>
+            <li>🔐 Acceder como administrador para más funciones</li>
+          </ul>
+          <hr>
+          <p class="text-muted">Esta aplicación es una demo para practicar búsquedas con Flask y PostgreSQL.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
