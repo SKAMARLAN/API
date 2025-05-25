@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
+
 import psycopg2
 
 app = Flask(__name__)
@@ -23,32 +25,45 @@ def home():
     return render_template("index.html")
 
 
-USUARIOS = {
-    "admin": {"password": "admin123", "role": "admin"},
-    "usuario": {"password": "usuario123", "role": "user"}
-}
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         user = request.form['username']
         password = request.form['password']
 
-        if user in USUARIOS and USUARIOS[user]['password'] == password:
-            session['username'] = user
-            session['role'] = USUARIOS[user]['role']
-            if session['role'] == 'admin':
-                return redirect(url_for('admin_panel'))
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT password, role FROM usuarios WHERE username = %s", (user,))
+            result = cur.fetchone()
+            cur.close()
+            conn.close()
+
+            if result:
+                hashed_password, role = result
+                if check_password_hash(hashed_password, password):
+                    session['username'] = user
+                    session['role'] = role
+                    if role == 'admin':
+                        return redirect(url_for('admin_panel'))
+                    else:
+                        return redirect(url_for('home'))
+                else:
+                    error = "Credenciales incorrectas"
             else:
-                return redirect(url_for('home'))
-        else:
-            return render_template('login.html', error="Credenciales incorrectas")
+                error = "Credenciales incorrectas"
+        except Exception as e:
+            error = f"Error al conectar con la base de datos: {e}"
+
+        return render_template('login.html', error=error)
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
+
 
 @app.route("/admin")
 def admin_panel():
@@ -97,9 +112,6 @@ def guardar_persona():
     return redirect(url_for('admin_panel'))
 @app.route('/buscar', methods=['GET'])
 def buscar():
-    if session.get('username') is None:
-        return redirect(url_for('login'))
-
     nombre = request.args.get('nombre', '').strip()
     apellido1 = request.args.get('apellido1', '').strip()
     apellido2 = request.args.get('apellido2', '').strip()

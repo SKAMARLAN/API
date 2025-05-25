@@ -1,4 +1,15 @@
 services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./web:/app
+    networks:
+      - appnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   postgres:
     image: postgres:14
     environment:
@@ -9,18 +20,25 @@ services:
       - "5432:5432"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
+    networks:
+      - appnet
 
   pgadmin:
     image: dpage/pgadmin4
+    restart: always
+    ports:
+      - "8080:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "8080:80"
-
-  web:
-    build: .
-    ports:
-      - "8000:8000"
     volumes:
-      - ./web:/app
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - appnet
+
+volumes:
+  pgadmin-data:
+
+networks:
+  appnet:
+    driver: bridge
