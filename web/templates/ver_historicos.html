@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#4CAF50">
+    <title>Históricos de Compras</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        form {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: white;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button.volver {
+            background-color: #888;
+            margin-top: 30px;
+        }
+
+        button.volver:hover {
+            background-color: #666;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 900px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 16px;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        p.no-registros {
+            color: #555;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        tfoot td {
+    font-weight: bold;
+    background-color: #e2f0d9;
+}
+
+/* Responsive - mismo que en ver_compras */
+@media screen and (max-width: 600px) {
+    table, thead, tbody, th, td, tr, tfoot {
+        display: block;
+        width: 100%;
+    }
+
+    thead tr {
+        display: none;
+    }
+
+    tr {
+        margin-bottom: 20px;
+        background: white;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    td:before {
+        position: absolute;
+        top: 12px;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        content: attr(data-label);
+        color: #555;
+        font-size: 14px;
+    }
+
+    tfoot td {
+        background-color: #e2f0d9;
+        font-weight: bold;
+        text-align: left;
+        padding-left: 15px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <h1>Históricos de Compras</h1>
+
+    <form method="GET" action="{{ url_for('ver_historicos') }}">
+        <label for="fecha">Selecciona fecha de saldo:</label>
+        <select name="fecha" id="fecha" required>
+            <option value="">-- Selecciona --</option>
+            {% for fecha in fechas %}
+                <option value="{{ fecha }}" {% if fecha|string == fecha_seleccionada %}selected{% endif %}>
+                    {{ fecha.strftime('%Y-%m-%d') }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Ver</button>
+    </form>
+
+    {% if registros %}
+    <table>
+        <thead>
+            <tr>
+                <th>Importe (€)</th>
+                <th>Compra</th>
+                <th>Fecha compra</th>
+                <th>Persona</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in registros %}
+            <tr>
+                <td>{{ "%.2f"|format(r[0]) }}</td>
+                <td>{{ r[1] }}</td>
+                <td>{{ r[2] }}</td>
+                <td>{{ r[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br><br>
+    <table>
+        <tfoot>
+            <tr>
+                <td colspan="2">Total JAVI</td>
+                <td colspan="2">{{ '%.2f'|format(total_javi) }} €</td>
+            </tr>
+            <tr>
+                <td colspan="2">Total PAOLA</td>
+                <td colspan="2">{{ '%.2f'|format(total_paola) }} €</td>
+            </tr>
+            <tr>
+                <td colspan="2">Saldo</td>
+                <td colspan="2">
+                    {% if resta > 0 %}
+                        PAOLA debe a JAVI {{ '%.2f'|format(resta / 2) }} €
+                    {% elif resta < 0 %}
+                        JAVI debe a PAOLA {{ '%.2f'|format((-resta) / 2) }} €
+                    {% else %}
+                        Saldo equilibrado
+                    {% endif %}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+
+    {% elif fecha_seleccionada %}
+        <p class="no-registros">No hay registros para la fecha seleccionada.</p>
+    {% endif %}
+
+    <button type="button" class="volver" onclick="location.href='/'">Volver</button>
+<script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/service-worker.js')
+        .then(function(reg) {
+          console.log('Service Worker registrado correctamente:', reg);
+        }).catch(function(error) {
+          console.log('Error al registrar el Service Worker:', error);
+        });
+    }
+  </script>
+</body>
+</html>

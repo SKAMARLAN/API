@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Juego Sandbox - Prueba</title>
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      gap: 2px;
+      margin-bottom: 20px;
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      background: #444;
+      border: 1px solid #222;
+      cursor: pointer;
+    }
+    .block {
+      background: #2ecc71;
+    }
+    button {
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🧱 Juego de Construcción (Prueba)</h2>
+<div class="grid" id="grid"></div>
+<button onclick="guardar()">💾 Guardar</button>
+<button onclick="cargar()">📥 Cargar</button>
+
+<script>
+  const grid = document.getElementById("grid");
+  const ancho = 10;
+  const alto = 10;
+  const celdas = [];
+
+  // Crear la grilla 10x10
+  for (let y = 0; y < alto; y++) {
+    for (let x = 0; x < ancho; x++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      cell.addEventListener("click", () => {
+        cell.classList.toggle("block");
+      });
+      grid.appendChild(cell);
+      celdas.push(cell);
+    }
+  }
+
+function guardar() {
+  const bloques = celdas.filter(c => c.classList.contains("block"))
+    .map(c => ({
+      x: parseInt(c.dataset.x),
+      y: parseInt(c.dataset.y)
+    }));
+
+  fetch("http://192.168.110.38:8000/guardar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bloques })
+  }).then(res => res.json())
+    .then(data => alert(data.mensaje))
+    .catch(err => alert("Error al guardar: " + err));
+}
+
+function cargar() {
+  fetch("http://192.168.110.38:8000/cargar")
+    .then(res => res.json())
+    .then(data => {
+      celdas.forEach(c => c.classList.remove("block")); // limpiar
+      data.bloques.forEach(b => {
+        const cell = celdas.find(c =>
+          parseInt(c.dataset.x) === b.x && parseInt(c.dataset.y) === b.y
+        );
+        if (cell) cell.classList.add("block");
+      });
+    })
+    .catch(err => alert("Error al cargar: " + err));
+}
+
+</script>
+
+</body>
+</html>

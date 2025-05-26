@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#4CAF50">
+<title>Ver Compras</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 40px;
+        background-color: #f9f9f9;
+    }
+    h1 {
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    table {
+        width: 90%;
+        margin: auto;
+        border-collapse: collapse;
+        background: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+    th {
+        background-color: #4CAF50;
+        color: white;
+    }
+    tfoot td {
+        font-weight: bold;
+        background-color: #e2f0d9;
+    }
+    .button-back {
+        margin: 20px auto;
+        display: block;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #888;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 120px;
+        text-align: center;
+    }
+    .button-back:hover {
+        background-color: #666;
+    }
+
+    /* Estilos responsivos para móviles */
+    @media screen and (max-width: 600px) {
+        table, thead, tbody, th, td, tr {
+            display: block;
+            width: 100%;
+        }
+        thead tr {
+            display: none; /* Ocultar cabecera en móvil */
+        }
+        tr {
+            margin-bottom: 20px;
+            background: white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        td {
+            border: none;
+            position: relative;
+            padding-left: 50%;
+            text-align: left;
+            font-size: 14px;
+        }
+        td:before {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            width: 45%;
+            padding-right: 10px;
+            white-space: nowrap;
+            font-weight: bold;
+            content: attr(data-label);
+            text-align: left;
+            color: #555;
+            font-size: 14px;
+        }
+        tfoot td {
+            background-color: #e2f0d9;
+            font-weight: bold;
+            text-align: left;
+            padding-left: 15px;
+        }
+    }
+</style>
+</head>
+<body>
+<h1>Listado de Compras</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Importe (€)</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Persona</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for importe, compra, fecha, persona in registros %}
+        <tr>
+            <td data-label="Importe (€)">{{ '%.2f'|format(importe) }}</td>
+            <td data-label="Descripción">{{ compra }}</td>
+            <td data-label="Fecha">{{ fecha.strftime('%Y-%m-%d') }}</td>
+            <td data-label="Persona">{{ persona }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+        <tr>
+            <td colspan="2">Total JAVI</td>
+            <td colspan="2">{{ '%.2f'|format(total_javi) }} €</td>
+        </tr>
+        <tr>
+            <td colspan="2">Total PAOLA</td>
+            <td colspan="2">{{ '%.2f'|format(total_paola) }} €</td>
+        </tr>
+        <tr>
+            <td colspan="2">Saldo</td>
+            <td colspan="2">
+                {% if resta > 0 %}
+                    PAOLA debe a JAVI {{ '%.2f'|format(resta / 2) }} €
+                {% elif resta < 0 %}
+                    JAVI debe a PAOLA {{ '%.2f'|format((-resta) / 2) }} €
+                {% else %}
+                    Saldo equilibrado
+                {% endif %}
+            </td>
+        </tr>
+    </tfoot>
+
+</table>
+
+<button class="button-back" onclick="location.href='/'">Volver</button>
+<form action="/saldar" method="POST" style="text-align:center; margin-top: 20px;">
+    <button type="submit" style="
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+        background-color: #d9534f;
+        color: white;
+        cursor: pointer;
+    ">Saldar</button>
+</form>
+<script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/service-worker.js')
+        .then(function(reg) {
+          console.log('Service Worker registrado correctamente:', reg);
+        }).catch(function(error) {
+          console.log('Error al registrar el Service Worker:', error);
+        });
+    }
+  </script>
+</body>
+</html>
